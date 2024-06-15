@@ -1,0 +1,72 @@
+from flask import Flask, jsonify, request
+app= Flask(__name__)
+employees= [{"id": 123, "name": " Claudia", "wage": 800 , "hours":8, "antiguedad":30, "bonus_wage":None}, #usando el PUT deemployees/123, le cambie las horas de claudia a 5 HORAS
+{"id": 345, "name": "Javier", "wage": 600, "hours": 6, "antiguedad":8, "bonus_wage":None},
+{"id": 678, "name": "Silvia", "wage": 900, "hours":9, "antiguedad":15, "bonus_wage":None},
+{"id": 891, "name": "Monica", "wage": 300, "hours":3, "antiguedad":45, "bonus_wage":None},
+]
+#wage seria el sueldo basico, $100 por hora, sin agregarle el bono por antiguedad
+
+
+@app.route("/")
+def hello():
+    return"como te hiciste esperar perdida"
+
+
+@app.route("/employees")
+def get_employees():
+    return jsonify(employees)
+
+
+@app.route("/agregar", methods=["POST"])
+def add_employee():
+    employee_details= request.get_json() #para que funcione tendria que poner toda la informacion delprofesor (employee details)--> LA PEEEDOOOOOO, ver como se puede hacer sin poner todos los atributos
+    new_employee=[{"id": len(employees)+1,
+    "name": employee_details["name"],
+    "wage": employee_details["wage"] ,
+    "hours":employee_details["hours"],
+    }]
+    employees.append(new_employee)
+    return jsonify ({"message": "employee succesfully hired"}),200
+
+
+@app.route("/employees/<int:id>", methods=["PUT"])
+def update_employee(id):
+    employee_details=request.get_json()
+    for employee in employees:
+        if (employee["id"]==id):
+            employee["name"]=employee_details["name"]
+            employee["wage"]=employee_details["wage"]
+            employee["hours"]=employee_details["hours"]
+            return jsonify("message: employee succesfully updated")
+    return jsonify ({"messasge": "employee not found"}), 400
+
+
+#si la antiguedad es mayor a 15 y menor a 25, 10% mas de sueldo. si es mayor a 25, 30% mas de sueldo
+
+
+@app.route("/sueldo_actualizado/<int:id>", methods=["PUT"])
+def update_wage(id):#lo que va a recibir de postman es el id del profesor que quiere recibir el  suledo
+    employee_details=request.get_json() #las respouestas que recibo en formato json del postman
+    for employee in employees:
+        if(employee["id"]==id):
+            antiguedad=employee["antiguedad"]
+            if antiguedad>14 and antiguedad<25:
+                bonus_wage=employee["wage"]*1.10
+            elif antiguedad>24:
+                bonus_wage=employee["wage"]*1.30
+            else:
+                bonus_wage=employee["wage"]
+            employee["bonus_wage"]=bonus_wage
+            return jsonify("message: bonus wage succesfully updated")
+        return jsonify ({"messasge": "employee not found"}), 400
+
+
+
+
+
+
+
+
+if __name__=="__main__" :
+    app.run(debug=True, port=4000)
